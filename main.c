@@ -26,28 +26,34 @@ Matrix* new_matrix(int n_rows, int n_cols){
     return m;
 }
 
-Matrix* duplicate_matrix(double* data, int n_rows, int n_cols){
-    struct Matrix *m = new_matrix(n_rows, n_cols);
-    for (int i = 0; i < n_rows*n_cols; i++) {
-        m -> data[i] = data[i];
-    }
-    return m;
-}
-
-void print_matrix(Matrix* m, char **argv){
-    FILE *foutp = fopen(argv[3], "a");
-    for(int x = 0; x < m -> rows; x++){
+void print_matrix(Matrix* m, FILE **readFile, char* fileName) {
+    FILE *foutp = fopen(fileName, "a");
+    for (int x = 0; x < m->rows; x++) {
         fprintf(foutp, "\n");
-        for(int y = 0; y < m -> cols; y++){
-            int out = (int) m -> data[x * ( m -> cols) + y ];
+        for (int y = 0; y < m->cols; y++) {
+            int out = (int) m->data[x * (m->cols) + y];
             putw(out, foutp);
         }
     }
     fclose(foutp);
 }
+Matrix* duplicate_matrix(double* data, int n_rows, int n_cols){
+    struct Matrix *m = new_matrix(n_rows, n_cols);
+    for (int i = 0; i < n_rows*n_cols; i++) {
+        m -> data[i] = data[i];
+    }
+    printf("yarra");
+    return m;
+}
+/*void print_matrix(Matrix* m) {
+    for(int x = 0; x < m->rows; x++) {
+        for(int y = 0; y < m->cols; y++) {                  //  THIS WORKS
+            printf("%f ", m->data[x*(m->cols) + y]);
+        }
+    }
+}*/
 
 int main(int argc, char **argv) {
-
     NODE *head = malloc(sizeof(NODE));
     head = NULL;
 
@@ -63,7 +69,6 @@ int main(int argc, char **argv) {
     }
     size_in *= sizeof(char *);
     fclose(finp);
-
     finp = fopen(argv[2], "r");
     if(finp == NULL){
         printf("error"); //NOT SURE IF WE ARE GOING TO USE THIS OUTPUT
@@ -73,50 +78,69 @@ int main(int argc, char **argv) {
     fclose(foutp);
     char *str = malloc(sizeof(char)*size_in);
 
-    while(fgets(str, size_in, finp) != NULL){
-        if(strstr(str, "matread")){
+    // matrix size
+    // first part is just to make an array to hold them
+    int file_count = 0;
+    DIR * dirp;
+    struct dirent * entry;
 
-        }else if(strstr(str,"matzeros")){
-
-        }else if(strstr(str,"matslice")){
-
-        }else if(strstr(str,"matslicerow")){
-
-        }else if(strstr(str,"matslicecol")){
-
-        }else if(strstr(str,"matstack")){
-
-        }else if(strstr(str, "pad")){
-
-        }else if(strstr(str,"padval")){
-
-        }else if(strstr(str,"vecread")){
-
-        }else if(strstr(str,"vecslice")){
-
-        }else if(strstr(str,"vecstack")){
-
-        }else if(strstr(str,"veczeros")){
-
-        }else if(strstr(str,"add")){
-
-        }else if(strstr(str,"multiply")){
-
-        }else if(strstr(str,"substract")){
-
-        }else if(strstr(str,"dot")){
-
-        }else if(strstr(str,"mvstack")){
-
-        }else{
-            foutp = fopen(argv[3], "a");
-            fprintf(foutp, "error\n");
-            fclose(foutp);
+    dirp = opendir("arrays"); /* There should be error handling after this */
+    while ((entry = readdir(dirp)) != NULL) {
+        if (entry->d_type == DT_REG) { /* If the entry is a regular file */
+            file_count++;
         }
     }
+    closedir(dirp);
+    Matrix matrices[file_count];
 
+    //this part is to create the matrix
+    int memory = 0;
+    int column = 0;
+    int row = 1;
+    char c;
+    finp = fopen(argv[1], "r");
+
+    while((c = fgetc(finp)) != EOF){
+        if(c == ' '){
+            column++;
+        }
+        if(c == '\n'){
+            row++;
+        }
+    }
+    for(c = getc(finp); c != EOF; c = getc(finp)){
+        memory +=1;
+    }
+    column /= 2;
+    printf("%d", column);
+    printf("%d", row);
     fclose(finp);
-    free(str);
-    free(head);
-    return 0;
+    matrices[0] = * new_matrix(row, column); // i dont know how to use struct to make a matrix this is why im doing this
+    char string[memory * sizeof(int)];
+    arrayp = fopen(argv[1], "r");
+    int numbers[column];
+    char folder_name[] = "m1"; // this is so wrong but i dont know how to get folder names
+    while(fgets(string, memory * sizeof(int), finp) != NULL){// i just want to assign them to array of matrices
+        string.Split(' '); // im trying to read the folder and assign the numbers to my matrix
+        for(int y = 0; y < row; y++){
+            for(int x = 0; x < column; x++){
+            }
+        }
+    }
+    //print_matrix(&matrices[0], &foutp, argv[3]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+    printf("asd");
+
 }
