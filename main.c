@@ -91,16 +91,17 @@ int main(int argc, char **argv) {
         }
     }
     closedir(dirp);
-    Matrix matrices[file_count];
+    struct Matrix *matrices;
+    matrices = malloc( file_count * sizeof(struct Matrix));
 
     //this part is to create the matrix
     int memory = 0;
     int column = 0;
     int row = 1;
     char c;
-    finp = fopen(argv[1], "r");
+    arrayp = fopen(argv[1], "r");
 
-    while((c = fgetc(finp)) != EOF){
+    while((c = fgetc(arrayp)) != EOF){
         if(c == ' '){
             column++;
         }
@@ -108,26 +109,38 @@ int main(int argc, char **argv) {
             row++;
         }
     }
-    for(c = getc(finp); c != EOF; c = getc(finp)){
+    fclose(arrayp);
+    arrayp = fopen(argv[0], "r");
+    for(c = getc(arrayp); c != EOF; c = getc(arrayp)){
         memory +=1;
     }
     column /= 2;
     printf("%d", column);
-    printf("%d", row);
-    fclose(finp);
+    printf("%d", memory);
+    fclose(arrayp);   // LAN BU NASIL KODU BOZUYO AMK
     matrices[0] = * new_matrix(row, column); // i dont know how to use struct to make a matrix this is why im doing this
     char string[memory * sizeof(int)];
     arrayp = fopen(argv[1], "r");
-    int numbers[column];
+    int numbers[column*row];
     char folder_name[] = "m1"; // this is so wrong but i dont know how to get folder names
-    while(fgets(string, memory * sizeof(int), finp) != NULL){// i just want to assign them to array of matrices
-        string.Split(' '); // im trying to read the folder and assign the numbers to my matrix
+    while(fgets(string, memory * sizeof(int), arrayp) != NULL) {// i just want to assign them to array of matrices
+        //string.Split(' '); // im trying to read the folder and assign the numbers to my matrix
+        for (char *p = strtok(string, " "); p != NULL; p = strtok(NULL, " ")) {
+            for(int i = 0; i <= column; i++){
+
+                numbers[i] = atoi(p);
+            }
+            printf("%s\n",p);
+        }
+
         for(int y = 0; y < row; y++){
             for(int x = 0; x < column; x++){
-            }
+                matrices[0].rows = numbers[i];                      // BEN BUNLARIN DEGERLERINI NASI ATICAM ULAN
+            }                                                       // bunu duzeltmek amaclı yazdım calısmıcagını bılıyom yatıcam ama
         }
     }
-    //print_matrix(&matrices[0], &foutp, argv[3]);
+    printf("%d" , matrices[0].)
+    print_matrix(&matrices[0], &foutp, argv[3]);
 
 
 
@@ -142,5 +155,9 @@ int main(int argc, char **argv) {
 
 
     printf("asd");
+    free(matrices);
+    fclose(finp);
+    free(str);
+    free(head);
 
 }
