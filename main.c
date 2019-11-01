@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
+#include <stdbool.h>
 
 struct my_file{
     char *filename;
@@ -14,51 +15,64 @@ struct my_file{
 struct Matrix{
     int rows;
     int cols;
-    double* data;
+    double** data;
 };typedef struct Matrix Matrix;
 
 Matrix* new_matrix(int n_rows, int n_cols){
     struct Matrix* m = malloc(sizeof(Matrix));
     m -> rows = n_rows;
     m -> cols = n_cols;
-    m -> data = malloc(sizeof(double) * n_rows * n_cols); // stackoverflow da baska bisey daha var olmazsa bak
-
+    //m -> data = malloc(sizeof(double) * n_rows * n_cols); // stackoverflow da baska bisey daha var olmazsa bak
+    double** data = malloc(sizeof(double*) * n_rows);
+    for(int x = 0; x < n_rows; x++){
+        data[x] = calloc(n_cols, sizeof(double));
+    }
+    m -> data = data;
     return m;
 }
 
-void print_matrix(Matrix* m, FILE **readFile, char* fileName) {
+void print_matrix(Matrix* m, char* fileName) { // there was FILE** readFıle
     FILE *foutp = fopen(fileName, "a");
+    bool flag = false;
     for (int x = 0; x < m->rows; x++) {
-        fprintf(foutp, "\n");
+        if(flag)
+            fprintf(foutp,"\n");
         for (int y = 0; y < m->cols; y++) {
-            int out = (int) m->data[x * (m->cols) + y];
-            putw(out, foutp);
+            int out = (int) m->data[x][y];
+            //int out = (int) m->data[x * (m->cols) + y];
+            fprintf(foutp,"%d", out);
+            flag = true;
+            //putw(out, foutp);
         }
     }
     fclose(foutp);
 }
-Matrix* duplicate_matrix(double* data, int n_rows, int n_cols){
+Matrix* duplicate_matrix(double* data, int n_rows, int n_cols){ //i might need to change this part (stackoverflow)
     struct Matrix *m = new_matrix(n_rows, n_cols);
-    for (int i = 0; i < n_rows*n_cols; i++) {
-        m -> data[i] = data[i];
-    }
-    printf("yarra");
-    return m;
-}
-/*void print_matrix(Matrix* m) {
-    for(int x = 0; x < m->rows; x++) {
-        for(int y = 0; y < m->cols; y++) {                  //  THIS WORKS
-            printf("%f ", m->data[x*(m->cols) + y]);
+    for(int x = 0; x < n_rows; x++) {
+        for(int y = 0; y < n_cols; y++) {
+            m->data[x][y] = data[n_cols*x+y];
         }
     }
-}*/
+    /*for (int i = 0; i < n_rows*n_cols; i++) {
+        m -> data[i] = data[i];
+    }*/
+    return m;
+}
+void print_matrixe(Matrix* m) {
+    for(int x = 0; x < m->rows; x++) {
+        printf("%s", "\n");
+        for(int y = 0; y < m->cols; y++) {                  //  THIS WORKS
+            printf("%f ", m->data[x][y]);
+        }
+    }
+}
 
 int main(int argc, char **argv) {
     NODE *head = malloc(sizeof(NODE));
     head = NULL;
 
     FILE *arrayp = fopen(argv[1], "r");
-
     FILE *finp = fopen(argv[2], "r");
     size_t size_in = 0;
     size_t len = 0;
@@ -99,7 +113,7 @@ int main(int argc, char **argv) {
     int column = 0;
     int row = 1;
     char c;
-    arrayp = fopen(argv[1], "r");
+    //arrayp = fopen(argv[1], "r");
 
     while((c = fgetc(arrayp)) != EOF){
         if(c == ' '){
@@ -109,38 +123,40 @@ int main(int argc, char **argv) {
             row++;
         }
     }
+
     fclose(arrayp);
-    arrayp = fopen(argv[0], "r");
+    arrayp = fopen(argv[1], "r");
     for(c = getc(arrayp); c != EOF; c = getc(arrayp)){
         memory +=1;
     }
     column /= 2;
-    printf("%d", column);
-    printf("%d", memory);
     fclose(arrayp);   // LAN BU NASIL KODU BOZUYO AMK
-    matrices[0] = * new_matrix(row, column); // i dont know how to use struct to make a matrix this is why im doing this
+    //matrices[0] = * new_matrix(row, column); // i dont know how to use struct to make a matrix this is why im doing this
     char string[memory * sizeof(int)];
     arrayp = fopen(argv[1], "r");
-    int numbers[column*row];
+    double numbers[column*row];
+    int i = 0;
     char folder_name[] = "m1"; // this is so wrong but i dont know how to get folder names
     while(fgets(string, memory * sizeof(int), arrayp) != NULL) {// i just want to assign them to array of matrices
         //string.Split(' '); // im trying to read the folder and assign the numbers to my matrix
         for (char *p = strtok(string, " "); p != NULL; p = strtok(NULL, " ")) {
-            for(int i = 0; i <= column; i++){
-
+            //for(int i = 0; i <= column; i++){
                 numbers[i] = atoi(p);
-            }
-            printf("%s\n",p);
+                //printf("%d\n", numbers[i]);
+                i ++;
+            //}
         }
 
-        for(int y = 0; y < row; y++){
+        /*for(int y = 0; y < row; y++){
             for(int x = 0; x < column; x++){
-                matrices[0].rows = numbers[i];                      // BEN BUNLARIN DEGERLERINI NASI ATICAM ULAN
+                                      // BEN BUNLARIN DEGERLERINI NASI ATICAM ULAN
             }                                                       // bunu duzeltmek amaclı yazdım calısmıcagını bılıyom yatıcam ama
-        }
+        }*/
     }
-    printf("%d" , matrices[0].)
-    print_matrix(&matrices[0], &foutp, argv[3]);
+    Matrix* m1 = duplicate_matrix(numbers, row, column);
+    print_matrix(m1,argv[3]);
+    print_matrixe(m1);
+    //print_matrix(&matrices[0], &foutp, argv[3]);
 
 
 
@@ -157,6 +173,7 @@ int main(int argc, char **argv) {
     printf("asd");
     free(matrices);
     fclose(finp);
+    fclose(arrayp);
     free(str);
     free(head);
 
