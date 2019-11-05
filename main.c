@@ -120,7 +120,6 @@ int main(int argc, char **argv) {
     //int no_of_matrix = 0;
     dirp = opendir(argv[1]);
 
-    int count = 0; // because its fucked after 2nd time of reading file
     while ((entry = readdir(dirp)) != NULL) {
         if((strcmp(entry->d_name,".")==0 || strcmp(entry->d_name,"..")==0 || (*entry->d_name) == '.' ))
         {
@@ -129,14 +128,6 @@ int main(int argc, char **argv) {
         {
             printf ("[%s]\n", entry->d_name);
             size_of_name = strlen(entry -> d_name);
-
-            //int i = 0;
-            /*while(fgets(string, memory * sizeof(int), arrayp) != NULL) {
-                for (char *p = strtok(string, " "); p != NULL; p = strtok(NULL, " ")) {
-                    numbers[i] = atoi(p);
-                    i ++;
-                }
-            }*/
 
 
             if(strstr(entry -> d_name, ".vec")){
@@ -156,11 +147,8 @@ int main(int argc, char **argv) {
                     *(m_name + c) = *(name + c);                                        // not sure if we need it tho
                     c++;
                 }
-                //*(m_name + c) = ;
                 printf("%s\n", m_name);
 
-                /*char * folder_name = malloc(strlen(argv[1]));
-                folder_name = argv[1];*/
                 char *directory = (char *) malloc(strlen(argv[1]) + sizeof(char));
 
                 strcpy(directory, argv[1]);
@@ -173,43 +161,41 @@ int main(int argc, char **argv) {
                 int column = 0;
                 int row = 0;
                 char ch;
-                while ((ch = fgetc(arrayp)) != EOF) {
-                    if (ch == '\n' | ch == '\0') {
-                        row++;
-                        column++;
-                    }
-                    if (ch == ' ' | ch == '\0') {
-                        column++;
-                    }
-
-                }
-                if (count >= 2){                            // because its fucked after 2nd time of reading file
-                    row++;                                  // because its fucked after 2nd time of reading file
-                    column++;                               // because its fucked after 2nd time of reading file
-                }
-                count++;                                    // because its fucked after 2nd time of reading file
-                column = column/(row);
-                fclose(arrayp);
                 arrayp = fopen(directory,"r");
                 for(ch = getc(arrayp); ch != EOF; ch = getc(arrayp)){
                     memory +=1;
                 }
                 fclose(arrayp);
-                char string[memory * sizeof(double)];
                 arrayp = fopen(directory,"r");
-                double numbers[column*row];
-                int i = 0;
-                while(fgets(string, memory * sizeof(double), arrayp) != NULL) {
-                    for (char *p = strtok(string, " "); p != NULL; p = strtok(NULL, " ")) {
-                        numbers[i] = atoi(p);
-                        //printf("\n%f",numbers[i]);
-                        i ++;
+
+                char line[memory * sizeof(double)];
+                while(fgets(line, memory * sizeof(double), arrayp) != NULL) {
+                    row++;
+                    for (char *p = strtok(line, " "); p != NULL; p = strtok(NULL, " ")) {
+                        column++;
                     }
                 }
                 fclose(arrayp);
+                arrayp = fopen(directory,"r");
+                double numbers[column*row];
+                int i = 0;
+                char string[memory * sizeof(double)];
+                while(fgets(string, memory * sizeof(double), arrayp) != NULL) {
+                    for (char *pt = strtok(string, " "); pt != NULL; pt = strtok(NULL, " ")) {
+                        numbers[i] = atoi(pt);
+                        i ++;
+                    }
+                }
+                column /=row ;
+                fclose(arrayp);
+
+                printf("%d   %d\n", row, column);
 
                 Matrix* m1 = duplicate_matrix(m_name, numbers, row, column);
                 print_matrix(m1,argv[3]);
+                /*free(name);
+                free(directory);
+                free(head);*/
             }
 
         }
@@ -272,5 +258,4 @@ int main(int argc, char **argv) {
     fclose(finp);
     free(str);
     free(head);
-
 }
