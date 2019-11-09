@@ -31,7 +31,7 @@ Matrix* new_matrix(char* n_name,int n_rows, int n_cols){
     return m;
 }
 
-void print_matrix(Matrix* m, char* fileName) { // there was FILE** readFıle
+void print_matrix(Matrix* m, char* fileName) {
     FILE *foutp = fopen(fileName, "a");
     bool flag = false;
 
@@ -47,7 +47,7 @@ void print_matrix(Matrix* m, char* fileName) { // there was FILE** readFıle
     fprintf(foutp,"\n");
     fclose(foutp);
 }
-Matrix* duplicate_matrix(char * name,double* data, int n_rows, int n_cols){ //i might need to change this part (stackoverflow)
+Matrix* duplicate_matrix(char * name,double* data, int n_rows, int n_cols){
     struct Matrix *m = new_matrix(name, n_rows, n_cols);
     for(int y = 0; y < n_rows; y++) {
         for(int x = 0; x < n_cols; x++) {
@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
     fclose(finp);
     finp = fopen(argv[2], "r");
     if(finp == NULL){
-        printf("error"); //NOT SURE IF WE ARE GOING TO USE THIS OUTPUT
+        printf("error");
         exit(0);
     }
     FILE *foutp =fopen(argv[3], "w");
@@ -82,15 +82,15 @@ int main(int argc, char **argv) {
     DIR * dirp;
     struct dirent * entry;
 
-    dirp = opendir(argv[1]); /* There should be error handling after this */
+    dirp = opendir(argv[1]);
     while ((entry = readdir(dirp)) != NULL) {
-        if (entry->d_type == DT_REG) { /* If the entry is a regular file */
+        if (entry->d_type == DT_REG) {
             file_count++;
         }
     }
     closedir(dirp);
     int matrix_file_count = 0;
-    Matrix* Matrix_Array[file_count];
+    Matrix** Matrix_Array= malloc(file_count * sizeof(Matrix));
     size_t size_of_name;
     dirp = opendir(argv[1]);
     int flag = 0;
@@ -153,7 +153,7 @@ int main(int argc, char **argv) {
                 fclose(arrayp);
                 arrayp = fopen(directory,"r");
 
-                char line[memory * sizeof(double)];
+                char *line = malloc(memory * sizeof(double));
                 while(fgets(line, memory * sizeof(double), arrayp) != NULL) {
                     row++;
                     for (char *p = strtok(line, " "); p != NULL; p = strtok(NULL, " ")) {
@@ -162,9 +162,9 @@ int main(int argc, char **argv) {
                 }
                 fclose(arrayp);
                 arrayp = fopen(directory,"r");
-                double numbers[column*row];
+                double *numbers = malloc(column*row*sizeof(double));
                 int i = 0;
-                char string[memory * sizeof(double)];
+                char *string = malloc(memory * sizeof(double));
                 while(fgets(string, memory * sizeof(double), arrayp) != NULL) {
                     for (char *pt = strtok(string, " "); pt != NULL; pt = strtok(NULL, " ")) {
                         numbers[i] = atoi(pt);
@@ -177,7 +177,6 @@ int main(int argc, char **argv) {
                 printf("%d   %d\n", row, column);
 
                 Matrix* m1 = duplicate_matrix(m_name, numbers, row, column);
-                //print_matrix(m1,argv[3]);
                 Matrix_Array[element] = m1;
                 element ++;
 
@@ -188,15 +187,6 @@ int main(int argc, char **argv) {
 
         }
     }
-    /*char* name =malloc(sizeof(int)* 3);
-    name = "m4";
-    for(int i = 0; i<matrix_file_count;i++) {
-        printf("%s\n",Matrix_Array[i]->name);
-
-        if(strcmp(name, Matrix_Array[i]->name) == 0){
-            print_matrix(Matrix_Array[i], argv[3]);
-        }
-    }*/
     FILE* command_filep = fopen(argv[2], "r");
     char ch;
     int mem = 0;
@@ -227,7 +217,7 @@ int main(int argc, char **argv) {
             i++;
         }
         i = 0;
-
+        //INITIALIZATIONS
         if(strcmp(str_arr[i],"matread") == 0){
             char * name = malloc(strlen(str_arr[i+1]));
 
@@ -249,18 +239,49 @@ int main(int argc, char **argv) {
 
             }
         }
-        if(strcmp(str_arr[i],"subtract") == 0){
+        if(strcmp(str_arr[i],"matzeros") == 0){
+            str_arr[i+3][strlen(str_arr[i+3])-2] = '\0';
+            double *numbers = malloc(atoi(str_arr[i+3])*atoi(str_arr[i+2])*sizeof(double));
+            for(int k = 0; k < atoi(str_arr[i+2])*atoi(str_arr[i+3]); k++){
+                numbers[i] = 0;
+            }
+            Matrix* m = duplicate_matrix(str_arr[i+1],numbers,atoi(str_arr[i+2]),atoi(str_arr[i+3]));
+            matrix_file_count++;
+            Matrix_Array = realloc(Matrix_Array, matrix_file_count*sizeof(Matrix));
+            Matrix_Array[matrix_file_count] = m;
+            foutp = fopen(argv[3], "a");
+            fprintf(foutp,"%s %s %d %d\n","created matrix", str_arr[i+1], Matrix_Array[matrix_file_count]->rows, Matrix_Array[matrix_file_count]->cols);
+            fclose(foutp);
+            print_matrix(Matrix_Array[matrix_file_count], argv[3]);
+
+        }
+        //CONCAT
+        if(strcmp(str_arr[i],"matstack") ==0){
             int place1 = 0;
             int place2 = 0;
             bool flag1 = false;
             bool flag2 = false;
-            printf("%s\n",str_arr[i]);
-            printf("%s\n",str_arr[i+1]);
-            printf("%s\n",str_arr[i+2]);
+            for(int j = 0; j < matrix_file_count; j++){
+                if(strcmp(str_arr[i+1],Matrix_Array[j]->name)==0){
+                    place1 = j;
+                    flag1 = true;
+                }
+                if(strcmp(str_arr[i+2],Matrix_Array[j]->name)==0){
+                    place2 = j;
+                    flag2 = true;
+                }
+            }
+        }
+        //MATH FUNCTIONS
+        if((strcmp(str_arr[i],"subtract") == 0)||(strcmp(str_arr[i],"multiply")==0)||(strcmp(str_arr[i],"add") == 0)){
+            int place1 = 0;
+            int place2 = 0;
+            bool flag1 = false;
+            bool flag2 = false;
+
             str_arr[i+2][strlen(str_arr[i+2])-2] = '\0';
 
             for(int matr = 0; matr<matrix_file_count;matr++) {
-                printf("%d\n", matrix_file_count);
                 if(strcmp(str_arr[i+1], Matrix_Array[matr]->name) == 0) {
                     place1 = matr;
                     flag1 = true;
@@ -270,7 +291,6 @@ int main(int argc, char **argv) {
                     place2 = matr;
                 }
             }
-            printf("%s\n",str_arr[i+2]);
 
             if(flag1 && flag2 && Matrix_Array[place1]->rows != Matrix_Array[place2] -> rows){
                 foutp =fopen(argv[3], "a");
@@ -292,21 +312,51 @@ int main(int argc, char **argv) {
                     nums[Matrix_Array[place1]->cols * x + y] = out;
                 }
             }
-            for (int x = 0; x < Matrix_Array[place2]->rows; x++) {
-                for (int y = 0; y < Matrix_Array[place2]->cols; y++) {
-                    int out = (int) Matrix_Array[place2]->data[x][y];
-                    nums[Matrix_Array[place2]->cols * x + y] -= out ;
+            if(strcmp(str_arr[i],"subtract")==0) {
+                for (int x = 0; x < Matrix_Array[place2]->rows; x++) {
+                    for (int y = 0; y < Matrix_Array[place2]->cols; y++) {
+                        int out = (int) Matrix_Array[place2]->data[x][y];
+                        nums[Matrix_Array[place2]->cols * x + y] -= out;
+                    }
+                }
+            }
+            if(strcmp(str_arr[i],"add")==0){
+                for (int x = 0; x < Matrix_Array[place2]->rows; x++) {
+                    for (int y = 0; y < Matrix_Array[place2]->cols; y++) {
+                        int out = (int) Matrix_Array[place2]->data[x][y];
+                        nums[Matrix_Array[place2]->cols * x + y] += out ;
+                    }
+                }
+            }
+            if(strcmp(str_arr[i],"multiply")==0){
+                for (int x = 0; x < Matrix_Array[place2]->rows; x++) {
+                    for (int y = 0; y < Matrix_Array[place2]->cols; y++) {
+                        int out = (int) Matrix_Array[place2]->data[x][y];
+                        nums[Matrix_Array[place2]->cols * x + y] *= out ;
+                    }
                 }
             }
             char *m_name = malloc(sizeof(char));
             m_name =".";
             Matrix* subs = duplicate_matrix(m_name, nums, Matrix_Array[place2]->rows, Matrix_Array[place2]->cols);
             foutp = fopen(argv[3],"a");
-            fprintf(foutp, "%s %s %s\n", "substract", Matrix_Array[place1]->name, Matrix_Array[place2]->name);
-            fclose(foutp);
+            if(strcmp(str_arr[i],"subtract")==0) {
+                fprintf(foutp, "%s %s %s\n", "substract", Matrix_Array[place1]->name, Matrix_Array[place2]->name);
+                fclose(foutp);
+            }
+            if(strcmp(str_arr[i],"add")==0){
+                fprintf(foutp, "%s %s %s\n", "add", Matrix_Array[place1]->name, Matrix_Array[place2]->name);
+                fclose(foutp);
+            }
+            if(strcmp(str_arr[i],"multiply")==0) {
+                fprintf(foutp, "%s %s %s\n", "multiply", Matrix_Array[place1]->name, Matrix_Array[place2]->name);
+                fclose(foutp);
+            }
             print_matrix(subs, argv[3]);
 
         }
+
+
     }
 
 
