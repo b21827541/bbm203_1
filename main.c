@@ -4,14 +4,6 @@
 #include <dirent.h>
 #include <stdbool.h>
 
-struct my_file{
-    char *filename;
-    char *fileformat;
-    char *filecontent;
-    int index;
-    struct my_file *next;
-}; typedef struct my_file NODE;
-
 struct Matrix{
     char * name;
     int rows;
@@ -19,18 +11,18 @@ struct Matrix{
     double** data;
 };typedef struct Matrix Matrix;
 
-struct Vector{
+
+/*struct Vector{
     int rows;
     int cols;
     double** data;
-};typedef struct Vector vector;
+};typedef struct Vector vector;*/
 
 Matrix* new_matrix(char* n_name,int n_rows, int n_cols){
     struct Matrix* m = malloc(sizeof(Matrix));
     m -> name = n_name;
     m -> rows = n_rows;
     m -> cols = n_cols;
-    //m -> data = malloc(sizeof(double) * n_rows * n_cols); // stackoverflow da baska bisey daha var olmazsa bak
     double** data = malloc(sizeof(double*) * n_rows);
     for(int x = 0; x < n_rows; x++){
         data[x] = calloc(n_cols, sizeof(double));
@@ -48,10 +40,8 @@ void print_matrix(Matrix* m, char* fileName) { // there was FILE** readFıle
             fprintf(foutp,"\n");
         for (int y = 0; y < m->cols; y++) {
             int out = (int) m->data[x][y];
-            //int out = (int) m->data[x * (m->cols) + y];
             fprintf(foutp,"%d ", out);
             flag = true;
-            //putw(out, foutp);
         }
     }
     fprintf(foutp,"\n");
@@ -64,29 +54,15 @@ Matrix* duplicate_matrix(char * name,double* data, int n_rows, int n_cols){ //i 
             m->data[y][x] = data[n_cols*y+x];
         }
     }
-    /*for (int i = 0; i < n_rows*n_cols; i++) {
-        m -> data[i] = data[i];
-    }*/
     return m;
 }
-/*void print_matrixe(Matrix* m) {
-    for(int x = 0; x < m->rows; x++) {
-        printf("%s", "\n");
-        for(int y = 0; y < m->cols; y++) {                  //  THIS WORKS
-            printf("%f ", m->data[x][y]);
-        }
-    }
-}*/
 
 int main(int argc, char **argv) {
-    NODE *head = malloc(sizeof(NODE));
-    head = NULL;
-
-    //FILE *arrayp = fopen(argv[1], "r");
     FILE *finp = fopen(argv[2], "r");
-    size_t size_in = 0;
+    int size_in = 0;
     size_t len = 0;
     ssize_t read;
+    int element = 0;
     char *line = NULL;
     while((read = getline(&line, &len, finp)) != -1){
         size_in += read;
@@ -102,8 +78,6 @@ int main(int argc, char **argv) {
     fclose(foutp);
     char *str = malloc(sizeof(char)*size_in);
 
-    // matrix size
-    // first part is just to make an array to hold them
     int file_count = 0;
     DIR * dirp;
     struct dirent * entry;
@@ -115,10 +89,12 @@ int main(int argc, char **argv) {
         }
     }
     closedir(dirp);
+    int matrix_file_count = 0;
+    Matrix* Matrix_Array[file_count];
     size_t size_of_name;
-    //int no_of_vector = 0;
-    //int no_of_matrix = 0;
     dirp = opendir(argv[1]);
+    int flag = 0;
+    char *directory = (char *) malloc(strlen(argv[1]) + sizeof(char));
 
     while ((entry = readdir(dirp)) != NULL) {
         if((strcmp(entry->d_name,".")==0 || strcmp(entry->d_name,"..")==0 || (*entry->d_name) == '.' ))
@@ -127,29 +103,39 @@ int main(int argc, char **argv) {
         else
         {
             printf ("[%s]\n", entry->d_name);
-            size_of_name = strlen(entry -> d_name);
 
 
             if(strstr(entry -> d_name, ".vec")){
                 continue;
             }
             if(strstr(entry->d_name, ".mat")) {
-                char *name = malloc(size_of_name * sizeof(char));
+                matrix_file_count++;
+                char *name = malloc(strlen(entry->d_name) * sizeof(char));
+                char *name_tokenized = malloc(strlen(entry->d_name) * sizeof(char));
+                char* dot = malloc(sizeof(char));
+                dot = ".";
                 int find = '.';
                 int value;
                 int c = 0;
                 char *ptr;
                 name = entry->d_name;
+
+                strcpy(name_tokenized, name);
+
                 ptr = strchr(name, find);
-                char *m_name = malloc(strlen(name) - strlen(ptr) + sizeof(char));
-                while (c <
+
+                char *m_name = malloc(strlen(name) - strlen(ptr));
+                /*while (c <
                        strlen(name) - strlen(ptr)) {                              //just the vector or matrix name part
                     *(m_name + c) = *(name + c);                                        // not sure if we need it tho
                     c++;
-                }
+                }*/
+                name_tokenized = strtok(name_tokenized,dot);
+                m_name = name_tokenized;
+                //m_name=strcat(m_name,"\0");
+
                 printf("%s\n", m_name);
 
-                char *directory = (char *) malloc(strlen(argv[1]) + sizeof(char));
 
                 strcpy(directory, argv[1]);
                 directory = strcat(directory, "/");
@@ -161,7 +147,6 @@ int main(int argc, char **argv) {
                 int column = 0;
                 int row = 0;
                 char ch;
-                arrayp = fopen(directory,"r");
                 for(ch = getc(arrayp); ch != EOF; ch = getc(arrayp)){
                     memory +=1;
                 }
@@ -192,7 +177,10 @@ int main(int argc, char **argv) {
                 printf("%d   %d\n", row, column);
 
                 Matrix* m1 = duplicate_matrix(m_name, numbers, row, column);
-                print_matrix(m1,argv[3]);
+                //print_matrix(m1,argv[3]);
+                Matrix_Array[element] = m1;
+                element ++;
+
                 /*free(name);
                 free(directory);
                 free(head);*/
@@ -200,62 +188,131 @@ int main(int argc, char **argv) {
 
         }
     }
-    closedir(dirp);
+    /*char* name =malloc(sizeof(int)* 3);
+    name = "m4";
+    for(int i = 0; i<matrix_file_count;i++) {
+        printf("%s\n",Matrix_Array[i]->name);
 
-    //struct Matrix *matrices;
-    //matrices = malloc( file_count * sizeof(struct Matrix));
-
-    //this part is to create the matrix
-    /*int memory = 0;
-    int column = 0;
-    int row = 1;
-    char c;*/
-
-    /*while((c = fgetc(arrayp)) != EOF){
-        if(c == ' '){
-            column++;
-        }
-        if(c == '\n'){
-            row++;
+        if(strcmp(name, Matrix_Array[i]->name) == 0){
+            print_matrix(Matrix_Array[i], argv[3]);
         }
     }*/
-
-    /*fclose(arrayp);
-    arrayp = fopen(argv[1], "r");
-    for(c = getc(arrayp); c != EOF; c = getc(arrayp)){
-        memory +=1;
+    FILE* command_filep = fopen(argv[2], "r");
+    char ch;
+    int mem = 0;
+    for(ch = getc(command_filep); ch != EOF; ch = getc(command_filep)){
+        mem +=1;
     }
-    column /= 2;
-    fclose(arrayp);
-    char string[memory * sizeof(int)];
-    arrayp = fopen(argv[1], "r");
-    double numbers[column*row];
+    fclose(command_filep);
+    command_filep = fopen(argv[2], "r");
     int i = 0;
-    while(fgets(string, memory * sizeof(int), arrayp) != NULL) {
-        for (char *p = strtok(string, " "); p != NULL; p = strtok(NULL, " ")) {
-                numbers[i] = atoi(p);
-                i ++;
+    int number_of_elements = 0;
+    char *string =(char *) malloc(mem * sizeof(char));
+    char *stringcpy =(char *) malloc(mem * sizeof(char));
+    while(fgets(string, mem * sizeof(char), command_filep) != NULL) {
+        char** str_arr ;
+        strcpy(stringcpy,string);
+        printf("%s\n", string);
+        for (char *pt = strtok(string, " "); pt != NULL; pt = strtok(NULL, " ")) {
+            //strcpy(&str_arr[i],pt);
+            //printf("%s\n", &str_arr[i]);
+            //i += strlen(&str_arr[i]);
+            number_of_elements ++;
+        }
+        str_arr = malloc(number_of_elements* sizeof(char *));
+        for (char *pt = strtok(stringcpy, " "); pt != NULL; pt = strtok(NULL, " ")) {
+            str_arr[i] = malloc(strlen(pt)* sizeof(char));
+            strcpy(str_arr[i], pt);
+            printf("%s\n", str_arr[i]);
+            i++;
+        }
+        i = 0;
+
+        if(strcmp(str_arr[i],"matread") == 0){
+            char * name = malloc(strlen(str_arr[i+1]));
+
+            char *dot = malloc(sizeof(char));
+            dot = ".";
+            str_arr[i+1][strlen(str_arr[i+1])-2] = '\0';
+            strcpy(name,str_arr[i+1]);
+
+            name = strtok(name,dot);
+
+            for(int matr = 0; matr<matrix_file_count;matr++) {
+                if(strcmp(name, Matrix_Array[matr]->name) == 0){
+                    foutp =fopen(argv[3], "a");
+                    fprintf(foutp,"%s %s %d %d\n","read matrix", str_arr[i+1], Matrix_Array[matr]->rows, Matrix_Array[matr]->cols);
+                    fclose(foutp);
+                    print_matrix(Matrix_Array[matr], argv[3]);
+                }
+
+
+            }
+        }
+        if(strcmp(str_arr[i],"subtract") == 0){
+            int place1 = 0;
+            int place2 = 0;
+            bool flag1 = false;
+            bool flag2 = false;
+            printf("%s\n",str_arr[i]);
+            printf("%s\n",str_arr[i+1]);
+            printf("%s\n",str_arr[i+2]);
+            str_arr[i+2][strlen(str_arr[i+2])-2] = '\0';
+
+            for(int matr = 0; matr<matrix_file_count;matr++) {
+                printf("%d\n", matrix_file_count);
+                if(strcmp(str_arr[i+1], Matrix_Array[matr]->name) == 0) {
+                    place1 = matr;
+                    flag1 = true;
+                }
+                if(strcmp(str_arr[i+2], Matrix_Array[matr]->name) == 0) {
+                    flag2 = true;
+                    place2 = matr;
+                }
+            }
+            printf("%s\n",str_arr[i+2]);
+
+            if(flag1 && flag2 && Matrix_Array[place1]->rows != Matrix_Array[place2] -> rows){
+                foutp =fopen(argv[3], "a");
+                fprintf(foutp, "%s\n", "error");
+                fclose(foutp);
+                continue;
+            }
+            if(flag1 && flag2 && Matrix_Array[place1]->cols != Matrix_Array[place2] -> cols) {
+                foutp =fopen(argv[3], "a");
+                fprintf(foutp, "%s\n", "error");
+                fclose(foutp);
+                continue;
+            }
+
+            double *nums = malloc(Matrix_Array[place1]->cols*Matrix_Array[place1]->rows* sizeof(double));
+            for (int x = 0; x < Matrix_Array[place1]->rows; x++) {
+                for (int y = 0; y < Matrix_Array[place1]->cols; y++) {
+                    int out = (int) Matrix_Array[place1]->data[x][y];
+                    nums[Matrix_Array[place1]->cols * x + y] = out;
+                }
+            }
+            for (int x = 0; x < Matrix_Array[place2]->rows; x++) {
+                for (int y = 0; y < Matrix_Array[place2]->cols; y++) {
+                    int out = (int) Matrix_Array[place2]->data[x][y];
+                    nums[Matrix_Array[place2]->cols * x + y] -= out ;
+                }
+            }
+            char *m_name = malloc(sizeof(char));
+            m_name =".";
+            Matrix* subs = duplicate_matrix(m_name, nums, Matrix_Array[place2]->rows, Matrix_Array[place2]->cols);
+            foutp = fopen(argv[3],"a");
+            fprintf(foutp, "%s %s %s\n", "substract", Matrix_Array[place1]->name, Matrix_Array[place2]->name);
+            fclose(foutp);
+            print_matrix(subs, argv[3]);
+
         }
     }
-    Matrix* m1 = duplicate_matrix(numbers, row, column);
-    print_matrix(m1,argv[3]);*/
-
-
-
-
-
-
-
-
-
-
-
 
 
 
     printf("asd");
-    //free(matrices);
     fclose(finp);
+    free(directory);
     free(str);
-    free(head);
 }
