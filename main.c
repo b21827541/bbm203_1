@@ -426,7 +426,7 @@ int main(int argc, char **argv) {
                 }
             }
 
-            if((strcmp(str_arr[i+3],"r") == 0) && flag1 &&flag2){
+            if((strcmp(str_arr[i+3],"r") == 0) && !flag1 &&!flag2){
                 if(Matrix_Array[place1]->rows != Matrix_Array[place2]->rows){
                     foutp = fopen(argv[3], "a");
                     fprintf(foutp, "error\n");
@@ -462,7 +462,7 @@ int main(int argc, char **argv) {
                 char * name = malloc(strlen(Matrix_Array[place1]->name));
                 strcpy(name,Matrix_Array[place1]->name);
                 Matrix * m = duplicate_matrix(name, numbers, row1, col1);
-                Matrix_Array[place1]->name = strcat(Matrix_Array[place1]->name, "_old");
+                Matrix_Array[place1]->name = "-";
                 foutp = fopen(argv[3],"a");
                 fprintf(foutp, "%s %s %d %d\n", "matrices concatenated", str_arr[i+1], row1, col1);
                 fclose(foutp);
@@ -518,7 +518,7 @@ int main(int argc, char **argv) {
             int ar = 0;
             double *numbers = malloc(col1*sizeof(double));
 
-            if(flag1&&flag2&&strcmp(str_arr[i+3],"row")==0){
+            if(!flag1&&!flag2&&strcmp(str_arr[i+3],"row")==0){
                 for (int y = 0; y < Vector_Array[place1]->cols; y++) {
                     int out = (int) Vector_Array[place1]->data[0][y];
                     numbers[ar] = out;
@@ -665,7 +665,7 @@ int main(int argc, char **argv) {
 
                 Matrix_Array = realloc(Matrix_Array, matrix_file_count * sizeof(Matrix));
                 Matrix_Array[matrix_file_count - 1] = m;
-                Matrix_Array[place1]->name = strcpy(Matrix_Array[place1]->name, "old");
+                Matrix_Array[place1]->name = "-";
                 foutp = fopen(argv[3], "a");
                 fprintf(foutp, "%s %s %d %d\n", "matrix paded", str_arr[i + 1],
                         Matrix_Array[place1]->rows + atoi(str_arr[i + 2]),
@@ -742,7 +742,7 @@ int main(int argc, char **argv) {
 
             Matrix_Array = realloc(Matrix_Array, matrix_file_count * sizeof(Matrix));
             Matrix_Array[matrix_file_count - 1] = m;
-            Matrix_Array[place1]->name = strcpy(Matrix_Array[place1]->name, "old");
+            Matrix_Array[place1]->name = "-";
             foutp = fopen(argv[3], "a");
             fprintf(foutp, "%s %s %d %d\n", "matrix paded", str_arr[i + 1],
                     Matrix_Array[place1]->rows + atoi(str_arr[i + 2]),
@@ -752,6 +752,82 @@ int main(int argc, char **argv) {
 
 
         }
+        //SLICING
+        if(strcmp(str_arr[i],"vecslice")==0){
+            int place1=0;
+            str_arr[i+4][strlen(str_arr[i+4]-2)] = '\0';
+            bool flag1 = false;
+            for (int j = 0; j < vector_file_count; ++j) {
+                if(strcmp(str_arr[i+1], Vector_Array[j]->name) == 0) {
+                    place1 = j;
+                    flag1 = true;
+                }
+            }
+            double *numbers = malloc((atoi(str_arr[i+3])-atoi(str_arr[i+2]))*sizeof(double));
+            int start = atoi(str_arr[i+2]);
+            int stop = atoi(str_arr[i+3]);
+            int k = 0;
+            while(start<stop){
+                int out = (int) Vector_Array[place1]->data[0][start];
+                numbers[k] = out;
+                start++;
+                k++;
+
+            }
+            Vector* v = duplicate_vector(str_arr[i+4],numbers,1,(atoi(str_arr[i+3])-atoi(str_arr[i+2])));
+            vector_file_count++;
+            Vector_Array = realloc(Vector_Array, vector_file_count*sizeof(Vector));
+            Vector_Array[vector_file_count-1] = v;
+
+            foutp = fopen(argv[3], "a");
+            fprintf(foutp,"%s %s %d\n","vector sliced", str_arr[i+4], Vector_Array[vector_file_count-1]->cols);
+            fclose(foutp);
+            print_vector(Vector_Array[vector_file_count-1], argv[3]);
+        }
+        if(strcmp(str_arr[i],"matslice")==0){
+            int place1=0;
+            str_arr[i+6][strlen(str_arr[i+6])-2] = '\0';
+            bool flag1 = false;
+            for (int j = 0; j < matrix_file_count; ++j) {
+                if(strcmp(str_arr[i+1], Matrix_Array[j]->name) == 0) {
+                    place1 = j;
+                    flag1 = true;
+                }
+            }
+            int start_row = atoi(str_arr[i+2]);
+            int stop_row = atoi(str_arr[i+3]);
+            int start_col = atoi(str_arr[i+4]);
+            int stop_col = atoi(str_arr[i+5]);
+            int l =0;
+            printf("%s\n",":))))))))))))))))))))))))))");
+            double *numbers = malloc((atoi(str_arr[i+3])-atoi(str_arr[i+2]))*(atoi(str_arr[i+5])-atoi(str_arr[i+4]))*sizeof(double));
+            for(int k= 0; k<(stop_row-start_row);k++) {
+                for (int j = 0; j < (stop_col - start_col); j++) {
+                    int out = (int) Matrix_Array[place1]->data[start_row-1][start_col-1];
+                    numbers[l] = out;
+                    start_col++;
+                    stop_col++;
+                    l++;
+                }
+                start_row++;
+                stop_row++;
+            }
+            for (int j = 0; j < matrix_file_count; ++j) {
+                if(strcmp(str_arr[i+6], Matrix_Array[j]->name) == 0) {
+                    Matrix_Array[j]->name = "-";
+                }
+            }
+            Matrix* m = duplicate_matrix(str_arr[i+6],numbers,(stop_row-start_row),(stop_col-start_col));
+            matrix_file_count++;
+            Matrix_Array = realloc(Matrix_Array, matrix_file_count*sizeof(Matrix));
+            Matrix_Array[matrix_file_count-1] = m;
+
+            foutp = fopen(argv[3], "a");
+            fprintf(foutp,"%s %s %d %d\n","matrix sliced", str_arr[i+6], Matrix_Array[matrix_file_count-1]->rows, Matrix_Array[matrix_file_count-1]->cols);
+            fclose(foutp);
+            print_matrix(Matrix_Array[matrix_file_count-1], argv[3]);
+
+        }
         //MATH FUNCTIONS
         if((strcmp(str_arr[i],"subtract") == 0)||(strcmp(str_arr[i],"multiply")==0)||(strcmp(str_arr[i],"add") == 0)){
             int place1 = 0;
@@ -759,7 +835,8 @@ int main(int argc, char **argv) {
             bool flag1 = false;
             bool flag2 = false;
 
-            str_arr[i+2][strlen(str_arr[i+2])-2] = '\0';
+            str_arr[i+2][strlen(str_arr[i+2])-2] = '\0'; //-----------------------------------------------------dosya sonunda patlıyo adlar
+            printf("%s\n", str_arr[i+2]);
 
             for(int matr = 0; matr<matrix_file_count;matr++) {
                 if(strcmp(str_arr[i+1], Matrix_Array[matr]->name) == 0) {
@@ -772,13 +849,13 @@ int main(int argc, char **argv) {
                 }
             }
 
-            if(flag1 && flag2 && Matrix_Array[place1]->rows != Matrix_Array[place2] -> rows){
+            if(!flag1 || !flag2 || Matrix_Array[place1]->rows != Matrix_Array[place2] -> rows){
                 foutp =fopen(argv[3], "a");
                 fprintf(foutp, "%s\n", "error");
                 fclose(foutp);
                 continue;
             }
-            if(flag1 && flag2 && Matrix_Array[place1]->cols != Matrix_Array[place2] -> cols) {
+            if(!flag1 || !flag2 || Matrix_Array[place1]->cols != Matrix_Array[place2] -> cols) {
                 foutp =fopen(argv[3], "a");
                 fprintf(foutp, "%s\n", "error");
                 fclose(foutp);
@@ -822,7 +899,7 @@ int main(int argc, char **argv) {
 
             Matrix_Array = realloc(Matrix_Array, matrix_file_count * sizeof(Matrix));
             Matrix_Array[matrix_file_count - 1] = m;
-            Matrix_Array[place1]->name = strcpy(Matrix_Array[place1]->name, "old");
+            Matrix_Array[place1]->name = "-";
             char *m_name = malloc(sizeof(char));
             m_name =".";
             Matrix* subs = duplicate_matrix(m_name, nums, Matrix_Array[place2]->rows, Matrix_Array[place2]->cols);
@@ -841,6 +918,8 @@ int main(int argc, char **argv) {
             }
             print_matrix(subs, argv[3]);
 
+        }else{
+            continue;
         }
 
 
