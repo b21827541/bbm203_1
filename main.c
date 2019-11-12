@@ -139,6 +139,9 @@ int main(int argc, char **argv) {
     char *directory = (char *) malloc(strlen(argv[1]) + sizeof(char));
     char** file_names = malloc(file_count* sizeof(char*));
     int file_names_count = 0;
+    char *dot;
+    dot = malloc(sizeof(char));
+    dot = ".";
     while ((entry = readdir(dirp)) != NULL) {
         if((strcmp(entry->d_name,".")==0 || strcmp(entry->d_name,"..")==0 || (*entry->d_name) == '.' ))
         {
@@ -153,8 +156,6 @@ int main(int argc, char **argv) {
                 vector_file_count++;
                 char *name = malloc(strlen(entry->d_name) * sizeof(char));
                 char *name_tokenized = malloc(strlen(entry->d_name) * sizeof(char));
-                char* dot = malloc(sizeof(char));
-                dot = ".";
                 int find = '.';
                 int value;
                 int c = 0;
@@ -214,12 +215,11 @@ int main(int argc, char **argv) {
                 Vector_Array[element_vector] = v1;
                 element_vector++;
             }
+
             if(strstr(entry->d_name, ".mat")) {
                 matrix_file_count++;
                 char *name = malloc(strlen(entry->d_name) * sizeof(char));
                 char *name_tokenized = malloc(strlen(entry->d_name) * sizeof(char));
-                char* dot = malloc(sizeof(char));
-                dot = ".";
                 int find = '.';
                 int value;
                 int c = 0;
@@ -267,6 +267,7 @@ int main(int argc, char **argv) {
                     }
                 }
                 fclose(arrayp);
+                free(line);
                 arrayp = fopen(directory,"r");
                 double *numbers = malloc(column*row*sizeof(double));
                 int i = 0;
@@ -279,7 +280,7 @@ int main(int argc, char **argv) {
                 }
                 column /=row ;
                 fclose(arrayp);
-
+                free(string);
                 printf("%d   %d\n", row, column);
 
                 Matrix* m1 = duplicate_matrix(m_name, numbers, row, column);
@@ -290,7 +291,6 @@ int main(int argc, char **argv) {
                 free(directory);
                 free(head);*/
             }
-
         }
     }
     FILE* command_filep = fopen(argv[2], "r");
@@ -305,8 +305,9 @@ int main(int argc, char **argv) {
     int number_of_elements = 0;
     char *string =(char *) malloc(mem * sizeof(char));
     char *stringcpy =(char *) malloc(mem * sizeof(char));
+    char** str_arr ;
+
     while(fgets(string, mem * sizeof(char), command_filep) != NULL) {
-        char** str_arr ;
         strcpy(stringcpy,string);
         printf("%s\n", string);
         for (char *pt = strtok(string, " "); pt != NULL; pt = strtok(NULL, " ")) {
@@ -317,7 +318,7 @@ int main(int argc, char **argv) {
         }
         str_arr = malloc(number_of_elements* sizeof(char *));
         for (char *pt = strtok(stringcpy, " "); pt != NULL; pt = strtok(NULL, " ")) {
-            str_arr[i] = malloc(strlen(pt)* sizeof(char));
+            str_arr[i] = malloc(strlen(pt)* sizeof(char*));
             strcpy(str_arr[i], pt);
             printf("%s\n", str_arr[i]);
             i++;
@@ -326,9 +327,6 @@ int main(int argc, char **argv) {
         //INITIALIZATIONS
         if(strcmp(str_arr[i],"matread") == 0){
             char * name = malloc(strlen(str_arr[i+1]));
-
-            char *dot = malloc(sizeof(char));
-            dot = ".";
             bool flag5 = false;
             str_arr[i+1][strlen(str_arr[i+1])-2] = '\0';
             for (int j = 0; j < file_names_count; ++j) {
@@ -345,7 +343,6 @@ int main(int argc, char **argv) {
             }
             strcpy(name,str_arr[i+1]);
             name = strtok(name,dot);
-
             for(int matr = 0; matr<matrix_file_count;matr++) {
                 if(strcmp(name, Matrix_Array[matr]->name) == 0){
                     foutp =fopen(argv[3], "a");
@@ -354,12 +351,12 @@ int main(int argc, char **argv) {
                     print_matrix(Matrix_Array[matr], argv[3]);
                 }
             }
+
             continue;
         }
         if(strcmp(str_arr[i],"vecread") == 0){
             char * name = malloc(strlen(str_arr[i+1]));
-            char *dot = malloc(sizeof(char));
-            dot = ".";
+
             str_arr[i+1][strlen(str_arr[i+1])-2] = '\0';
             bool flag5 = false;
             for (int j = 0; j < file_names_count; ++j) {
@@ -736,7 +733,7 @@ int main(int argc, char **argv) {
                 int big_col = 0;
                 int big_row = 0;
                 double *biggest = malloc(Matrix_Array[place1]->rows * sizeof(double));
-                double *biggest_col = malloc(Matrix_Array[place1]->cols * sizeof(double));
+                double *biggest_col = malloc((Matrix_Array[place1]->cols+atoi(str_arr[i + 3])) * sizeof(double));
                 double *all_cols = malloc(Matrix_Array[place1]->rows * sizeof(double));
                 bool flag2 = false;
                 for (int x = 0; x < Matrix_Array[place1]->rows; x++) {  //rowların sonunu tamamlamak icin
@@ -814,7 +811,6 @@ int main(int argc, char **argv) {
                         }
                     }
                     big_row++;
-                    printf("\n%d \n",(int) biggest_col[big_row]);
                     while(big_row<(atoi(str_arr[i+3])+Matrix_Array[place1]->rows)){
                         biggest_col[big_row]= big_or_small;
                         big_row++;
@@ -863,6 +859,7 @@ int main(int argc, char **argv) {
                         Matrix_Array[place1]->cols + atoi(str_arr[i + 3]));
                 fclose(foutp);
                 print_matrix(m, argv[3]);
+
                 continue;
             }
         }
@@ -1213,14 +1210,26 @@ int main(int argc, char **argv) {
             fprintf(foutp, "%s\n", "error");
             fclose(foutp);
         }
-
+        free(str_arr);
 
     }
 
+    for (int n = 0; n < vector_file_count; ++n) {
+        free(Vector_Array[n]->name);
+        free(Vector_Array[n]->data[0]);
+        free(Vector_Array[n]);
+    }
+    for (int i1 = 0; i1 < matrix_file_count; ++i1) {
+        for (int j = 0; j < Matrix_Array[i1]->rows; ++j) {
+            free(Matrix_Array[i1]->data[j]);
+        }
+        //free(Matrix_Array[i1]->name);
 
+    }
 
     printf("asd");
     fclose(finp);
     free(directory);
     free(str);
+    free(line);
 }
