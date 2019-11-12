@@ -137,7 +137,8 @@ int main(int argc, char **argv) {
     dirp = opendir(argv[1]);
     int flag = 0;
     char *directory = (char *) malloc(strlen(argv[1]) + sizeof(char));
-
+    char** file_names = malloc(file_count* sizeof(char*));
+    int file_names_count = 0;
     while ((entry = readdir(dirp)) != NULL) {
         if((strcmp(entry->d_name,".")==0 || strcmp(entry->d_name,"..")==0 || (*entry->d_name) == '.' ))
         {
@@ -145,7 +146,8 @@ int main(int argc, char **argv) {
         else
         {
             printf ("[%s]\n", entry->d_name);
-
+            file_names[file_names_count]=entry->d_name;
+            file_names_count++;
 
             if(strstr(entry -> d_name, ".vec")){
                 vector_file_count++;
@@ -327,9 +329,21 @@ int main(int argc, char **argv) {
 
             char *dot = malloc(sizeof(char));
             dot = ".";
+            bool flag5 = false;
             str_arr[i+1][strlen(str_arr[i+1])-2] = '\0';
-            strcpy(name,str_arr[i+1]);
+            for (int j = 0; j < file_names_count; ++j) {
+                if(strcmp(file_names[j],str_arr[i+1])==0){
+                    flag5 = true;
+                }
 
+            }
+            if(!flag5){
+                foutp = fopen(argv[3], "a");
+                fprintf(foutp, "error\n");
+                fclose(foutp);
+                continue;
+            }
+            strcpy(name,str_arr[i+1]);
             name = strtok(name,dot);
 
             for(int matr = 0; matr<matrix_file_count;matr++) {
@@ -347,6 +361,19 @@ int main(int argc, char **argv) {
             char *dot = malloc(sizeof(char));
             dot = ".";
             str_arr[i+1][strlen(str_arr[i+1])-2] = '\0';
+            bool flag5 = false;
+            for (int j = 0; j < file_names_count; ++j) {
+                if(strcmp(file_names[j],str_arr[i+1])==0){
+                    flag5 = true;
+                }
+
+            }
+            if(!flag5){
+                foutp = fopen(argv[3], "a");
+                fprintf(foutp, "error\n");
+                fclose(foutp);
+                continue;
+            }
             strcpy(name,str_arr[i+1]);
             name = strtok(name,dot);
             for(int vec = 0; vec<vector_file_count;vec++) {
