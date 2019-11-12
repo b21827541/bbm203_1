@@ -709,7 +709,7 @@ int main(int argc, char **argv) {
                 int big_col = 0;
                 int big_row = 0;
                 double *biggest = malloc(Matrix_Array[place1]->rows * sizeof(double));
-                double *biggest_col = malloc((Matrix_Array[place1]->cols+atoi(str_arr[i+3])) * sizeof(double));
+                double *biggest_col = malloc(Matrix_Array[place1]->cols * sizeof(double));
                 double *all_cols = malloc(Matrix_Array[place1]->rows * sizeof(double));
                 bool flag2 = false;
                 for (int x = 0; x < Matrix_Array[place1]->rows; x++) {  //rowların sonunu tamamlamak icin
@@ -728,6 +728,7 @@ int main(int argc, char **argv) {
                                 biggest[big] = numbers_old[f];
                             }
                         }
+                        printf("%d ",(int) biggest[big]);
                         big++;
                     }
                     if(flag2 && strcmp(str_arr[i+4],"minimum")== 0){
@@ -746,28 +747,49 @@ int main(int argc, char **argv) {
                     }
                 }
                 bool flag3 = false;
+                printf("\n%s \n",":((((((");
                 for (int y = 0; y < Matrix_Array[place1]->cols; y++) {
                     for (int x = 0; x < Matrix_Array[place1]->rows; x++) {
                         int out = (int) numbers_all[x * Matrix_Array[place1]->cols + y];
-
+                        printf("%d\n", out);
                         all_cols[x] = out;
                         flag3 = true;
                         biggest_col[big_row] = all_cols[0];
                     }
-                    if (flag3 && strcmp(str_arr[i+4],"maximum")== 0) {
+                    //flag
+                    if (strcmp(str_arr[i+4],"maximum")== 0) {
+
                         for (int j = 0; j < Matrix_Array[place1]->rows; ++j) {
-                            if (biggest_col[big_row] < all_cols[j]) {
+                            if (biggest_col[big_row] <= all_cols[j]) {
                                 biggest_col[big_row] = all_cols[j];
                             }
                         }
+                        printf("\n%d \n",(int) biggest_col[big_row]);
                         big_row++;
                     }
-                    if (flag3 && strcmp(str_arr[i+4],"minimum")== 0) {
-                        for (int j = 0; j < Matrix_Array[place1]->cols; ++j) {
-                            if (biggest_col[big_row] > all_cols[j]) {
+
+                    if (flag3 && (strcmp(str_arr[i+4],"minimum")== 0)) {
+                        for (int j = 0; j < Matrix_Array[place1]->rows; ++j) {
+                            if (biggest_col[big_row] >= all_cols[j]) {
                                 biggest_col[big_row] = all_cols[j];
                             }
                         }
+                        printf("%d \n",(int) biggest_col[big_row]);
+                        big_row++;
+                    }
+                }
+                int big_or_small = 0;
+                if (strcmp(str_arr[i+4],"maximum")== 0) {
+                    for (int j = 0; j < Matrix_Array[place1]->rows; ++j) {
+                        if (biggest_col[big_row] <= biggest[j]) {
+                            biggest_col[big_row] = biggest[j];
+                            big_or_small=(int)biggest[j];
+                        }
+                    }
+                    big_row++;
+                    printf("\n%d \n",(int) biggest_col[big_row]);
+                    while(big_row<(atoi(str_arr[i+3])+Matrix_Array[place1]->rows)){
+                        biggest_col[big_row]= big_or_small;
                         big_row++;
                     }
                 }
@@ -776,7 +798,7 @@ int main(int argc, char **argv) {
                 int x1 = 0;
                 int x2 = 0;
                 int a = 0;
-                for (int j = 0; j < Matrix_Array[place1]->rows; j++) {  //yana uzatti tamam ama alta uzatmıyo
+                for (int j = 0; j < Matrix_Array[place1]->rows; j++) {
                     while (x1 < Matrix_Array[place1]->cols) {
                         numbers[x] = numbers_all[x2];
                         x++;
@@ -793,31 +815,13 @@ int main(int argc, char **argv) {
                     x1 = 0;
                     a++;
                 }
-                int to_complete_down = (int)biggest[0];
-                if(strcmp(str_arr[i+4],"maximum")==0) {
-                    for (int n = 0; n < atoi(str_arr[i+3]) ; ++n) {
-                        if (to_complete_down < biggest[n]) {
-                            to_complete_down = (int) biggest[n];
-                        }
-                    }
-                    biggest_col[big_row] = to_complete_down;
-                    big_row++;
-                }
-                if(strcmp(str_arr[i+4],"minimum")==0) {
-                    for (int n = 0; n < atoi(str_arr[i+3]); ++n) {
-                        if (to_complete_down > biggest[n]) {
-                            to_complete_down = (int) biggest[n];
-                        }
-                    }
-                    biggest_col[big_row] = to_complete_down;
-                    big_row++;
-                }
-
                 for (int j = 0; j < atoi(str_arr[i + 2]); j++) {
-                    for (int k = 0; k < Matrix_Array[place1]->cols+atoi(str_arr[i+3]); k++) {
+                    for (int k = 0; k < Matrix_Array[place1]->cols+ atoi(str_arr[i+3]); k++) {
                         numbers[x] = biggest_col[k];
                         x++;
                     }
+
+
                 }
                 Matrix *m = duplicate_matrix(str_arr[i + 1], numbers, Matrix_Array[place1]->rows + atoi(str_arr[i + 2]),
                                              Matrix_Array[place1]->cols + atoi(str_arr[i + 3]));
@@ -885,8 +889,8 @@ int main(int argc, char **argv) {
                 x1 = 0;
                 a++;
             }
-            for (int j = 0; j < atoi(str_arr[i + 3]); j++) {
-                for (int k = 0; k < Matrix_Array[place1]->cols; k++) {
+            for (int j = 0; j < atoi(str_arr[i + 2]); j++) {
+                for (int k = 0; k < Matrix_Array[place1]->cols+atoi(str_arr[i+3]); k++) {
                     numbers[x] = atoi(str_arr[i+4]);
                     x++;
                 }
@@ -912,6 +916,7 @@ int main(int argc, char **argv) {
         if(strcmp(str_arr[i],"vecslice")==0){
             int place1=0;
             str_arr[i+4][strlen(str_arr[i+4])-2] = '\0';
+
             bool flag1 = false;
             for (int j = 0; j < vector_file_count; ++j) {
                 if(strcmp(str_arr[i+1], Vector_Array[j]->name) == 0) {
@@ -923,6 +928,12 @@ int main(int argc, char **argv) {
             int start = atoi(str_arr[i+2]);
             int stop = atoi(str_arr[i+3]);
             int k = 0;
+            if(Vector_Array[place1]->cols < stop){
+                stop = Vector_Array[place1]->cols;
+            }
+            if(Vector_Array[place1]->cols < start){
+
+            }
             while(start<stop){
                 int out = (int) Vector_Array[place1]->data[0][start];
                 numbers[k] = out;
@@ -930,7 +941,7 @@ int main(int argc, char **argv) {
                 k++;
 
             }
-            Vector* v = duplicate_vector(str_arr[i+4],numbers,1,(atoi(str_arr[i+3])-atoi(str_arr[i+2])));
+            Vector* v = duplicate_vector(str_arr[i+4],numbers,1,stop-atoi(str_arr[i+2]));
             vector_file_count++;
             Vector_Array = realloc(Vector_Array, vector_file_count*sizeof(Vector));
             Vector_Array[vector_file_count-1] = v;
