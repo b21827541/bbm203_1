@@ -176,7 +176,7 @@ int main(int argc, char **argv) {
 
                 strcpy(directory, argv[1]);
                 directory = strcat(directory, "/");
-                size_t new_mem_size = strlen(argv[1]) + sizeof(char) + strlen(entry->d_name);
+                size_t new_mem_size =   sizeof(char) + strlen(entry->d_name);
                 directory = (char *) realloc(directory, new_mem_size);
                 directory = strcat(directory, entry->d_name);
                 FILE *arrayp = fopen(directory, "r");
@@ -214,32 +214,34 @@ int main(int argc, char **argv) {
                 struct Vector* v1 = duplicate_vector(v_name, numbers, row,column);
                 Vector_Array[element_vector] = v1;
                 element_vector++;
+                free(numbers);
+                free(string);
+                free(line);
             }
 
             if(strstr(entry->d_name, ".mat")) {
                 matrix_file_count++;
                 char *name = malloc(strlen(entry->d_name) * sizeof(char));
+                char *name_tok = malloc(strlen(entry->d_name) * sizeof(char));
                 char *name_tokenized = malloc(strlen(entry->d_name) * sizeof(char));
+                char** name_tok_ar = malloc(strlen(name) * sizeof(char*));
                 int find = '.';
                 int value;
                 int c = 0;
                 char *ptr;
                 name = entry->d_name;
-
-                strcpy(name_tokenized, name);
+                name_tok_ar[0] = NULL;
+                strcpy(name_tok, name);
 
                 ptr = strchr(name, find);
 
                 char *m_name = malloc(strlen(name) - strlen(ptr));
-                /*while (c <
-                       strlen(name) - strlen(ptr)) {                              //just the vector or matrix name part
-                    *(m_name + c) = *(name + c);                                        // not sure if we need it tho
-                    c++;
-                }*/
-                name_tokenized = strtok(name_tokenized,dot);
-                m_name = name_tokenized;
-                //m_name=strcat(m_name,"\0");
+                for (int j = 0; j < 2; ++j) {
+                    name_tok_ar[j] = strtok(name_tok,dot);
+                }
 
+                strcpy(name_tokenized,name_tok_ar[0]);
+                m_name = name_tokenized;
                 printf("%s\n", m_name);
 
 
@@ -286,10 +288,10 @@ int main(int argc, char **argv) {
                 Matrix* m1 = duplicate_matrix(m_name, numbers, row, column);
                 Matrix_Array[element] = m1;
                 element ++;
-
-                /*free(name);
-                free(directory);
-                free(head);*/
+                free(numbers);
+                free(name_tokenized);
+                free(name_tok);
+                free(name_tok_ar);
             }
         }
     }
@@ -351,7 +353,7 @@ int main(int argc, char **argv) {
                     print_matrix(Matrix_Array[matr], argv[3]);
                 }
             }
-
+            free(name);
             continue;
         }
         if(strcmp(str_arr[i],"vecread") == 0){
@@ -381,6 +383,7 @@ int main(int argc, char **argv) {
                     print_vector(Vector_Array[vec], argv[3]);
                 }
             }
+            free(name);
             continue;
         }
         if(strcmp(str_arr[i],"matzeros") == 0){
@@ -418,6 +421,7 @@ int main(int argc, char **argv) {
             fprintf(foutp,"%s %s %d\n","created vector", str_arr[i+1], Vector_Array[vector_file_count-1]->cols);
             fclose(foutp);
             print_vector(Vector_Array[vector_file_count-1], argv[3]);
+            free(numbers);
             continue;
         }
         //CONCAT
@@ -662,6 +666,7 @@ int main(int argc, char **argv) {
                 fclose(foutp);
                 printf("%s \n", "asdasdas");
                 print_matrix(m, argv[3]);
+                free(numbers);
                 continue;
             }
             if((strcmp(str_arr[i+3],"r") == 0) || !flag1 || !flag2) {
@@ -671,7 +676,7 @@ int main(int argc, char **argv) {
                     fclose(foutp);
                     continue;
                 }
-                double * numbers = malloc((Matrix_Array[place1]->rows+1)*Matrix_Array[place1]->cols*sizeof(double));
+                double * numbers = malloc((Matrix_Array[place1]->rows)*(Matrix_Array[place1]->cols+1)*sizeof(double));
                 //double * numbers_mat = malloc((Matrix_Array[place1]->rows)*Matrix_Array[place1]->cols*sizeof(double));
                 //double * numbers_vec = malloc(Vector_Array[place2]->cols*sizeof(double));
                 int vec = 0;
@@ -701,6 +706,7 @@ int main(int argc, char **argv) {
                 printf("%s \n", "asdasdas");
 
                 print_matrix(m, argv[3]);
+                free(numbers);
                 continue;
             }
         }
@@ -859,7 +865,12 @@ int main(int argc, char **argv) {
                         Matrix_Array[place1]->cols + atoi(str_arr[i + 3]));
                 fclose(foutp);
                 print_matrix(m, argv[3]);
-
+                free(numbers);
+                free(numbers_all);
+                free(numbers_old);
+                free(biggest);
+                free(all_cols);
+                free(biggest_col);
                 continue;
             }
         }
@@ -974,6 +985,7 @@ int main(int argc, char **argv) {
             fprintf(foutp,"%s %s %d\n","vector sliced", str_arr[i+4], Vector_Array[vector_file_count-1]->cols);
             fclose(foutp);
             print_vector(Vector_Array[vector_file_count-1], argv[3]);
+            free(numbers);
             continue;
         }
         if(strcmp(str_arr[i],"matslice")==0){
@@ -1231,5 +1243,7 @@ int main(int argc, char **argv) {
     fclose(finp);
     free(directory);
     free(str);
+    free(string);
+    free(stringcpy);
     free(line);
 }
